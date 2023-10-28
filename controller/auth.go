@@ -40,6 +40,9 @@ func (o *AuthController) signup(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
+
+	c.SetCookie("token", res.Token, 3600, "/", "", false, true)
+	res.Token = ""
 	c.JSON(http.StatusOK, res)
 }
 
@@ -56,6 +59,9 @@ func (o *AuthController) login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
+
+	c.SetCookie("token", res.Token, 3600, "/", "", false, true)
+	res.Token = ""
 	c.JSON(http.StatusOK, res)
 }
 
@@ -98,5 +104,7 @@ func (o *AuthController) refreshToken(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
-	c.JSON(http.StatusOK, res)
+
+	c.SetCookie("token", res.Token, 3600, "/", "", false, true)
+	c.JSON(http.StatusCreated, gin.H{"message": "Token refreshed"})
 }
