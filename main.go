@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/rekib0023/event-horizon-gateway/api"
 	pb "github.com/rekib0023/event-horizon-gateway/proto"
 	"google.golang.org/grpc"
 )
@@ -26,12 +27,15 @@ func main() {
 
 	gRpc := pb.NewAuthServiceClient(conn)
 
-	RegisterAuthEndpoints(r, gRpc)
-	RegisterProfileEndpoints(r, gRpc)
+	authGroup := r.Group("/api/auth")
+	api.RegisterAuthEndpoints(authGroup, gRpc)
 
-	port := os.Getenv("AUTH_SVC")
+	usersGroup := r.Group("/api/users")
+	api.RegisterProfileEndpoints(usersGroup, gRpc)
+
+	port := os.Getenv("PORT")
 	if port == "" {
-		log.Fatal("AUTH_SVC environment variable not set")
+		log.Fatal("PORT environment variable not set")
 	}
 
 	log.Println("Starting server on :" + port + "...")
