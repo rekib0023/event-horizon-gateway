@@ -9,12 +9,12 @@ import (
 	"google.golang.org/grpc"
 )
 
-type Controller struct {
+type ControllerInterface struct {
 	r    *gin.RouterGroup
 	gRpc pb.AuthServiceClient
 }
 
-var controller *Controller
+var controller *ControllerInterface
 
 func Init() {
 	controller.InitAuthController()
@@ -22,10 +22,6 @@ func Init() {
 }
 
 var e *gin.Engine
-
-func initGin() {
-
-}
 
 func Start() {
 	e = gin.Default()
@@ -37,12 +33,11 @@ func Start() {
 		defer conn.Close()
 		gRpc := pb.NewAuthServiceClient(conn)
 		apiGroup := e.Group("/api")
-		controller = &Controller{
+		controller = &ControllerInterface{
 			r:    apiGroup,
 			gRpc: gRpc,
 		}
 	}
-
 	Init()
 
 	port := os.Getenv("PORT")
