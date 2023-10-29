@@ -40,7 +40,7 @@ func TokenAuthMiddleware(gRpc pb.AuthServiceClient) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		c.Set("user", res.Decoded)
+		c.Set("user", res)
 		c.Next()
 	}
 }
