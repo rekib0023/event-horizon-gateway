@@ -18,9 +18,9 @@ type AuthController struct {
 
 var authController *AuthController
 
-func (controller *ControllerInterface) InitAuthController() {
+func (c *ControllerInterface) InitAuthController() {
 	authController = &AuthController{
-		gRpc: controller.gRpc,
+		gRpc: c.gRpc,
 	}
 
 	POST("/auth/signup", authController.signup)

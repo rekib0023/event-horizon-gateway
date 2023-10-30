@@ -1,8 +1,11 @@
 package controller
 
 import (
+	"encoding/json"
 	"log"
+	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	pb "github.com/rekib0023/event-horizon-gateway/proto"
@@ -10,8 +13,9 @@ import (
 )
 
 type ControllerInterface struct {
-	r    *gin.RouterGroup
-	gRpc pb.AuthServiceClient
+	r          *gin.RouterGroup
+	gRpc       pb.AuthServiceClient
+	httpClient *http.Client
 }
 
 var controller *ControllerInterface
@@ -50,22 +54,57 @@ func Start() {
 	e.Run(":" + port)
 }
 
-func POST(pattern string, handler gin.HandlerFunc) {
-	controller.r.POST(pattern, handler)
-}
+func (o *ControllerInterface) eventsPassThrough(c *gin.Context) {
+	userValue, exists := c.Get("user")
+	if !exists {
+		o.jsonError(c, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 
-func GET(pattern string, handler gin.HandlerFunc) {
-	controller.r.GET(pattern, handler)
-}
+	currentUser, ok := userValue.(*pb.TokenVerification)
+	if !ok {
+		o.jsonError(c, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 
-func PUT(pattern string, handler gin.HandlerFunc) {
-	controller.r.PUT(pattern, handler)
-}
+	endpoint := strings.TrimPrefix(c.Request.URL.Path, "/api")
+	url := os.Getenv("EVENT_MGT_SVC") + endpoint
+	req, err := http.NewRequest(c.Request.Method, url, c.Request.Body)
 
-func DELETE(pattern string, handler gin.HandlerFunc) {
-	controller.r.DELETE(pattern, handler)
-}
+	if err != nil {
+		o.jsonError(c, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-func ANY(pattern string, handler gin.HandlerFunc) {
-	controller.r.Any(pattern, handler)
+	req.Header.Set("X-User-ID", currentUser.Id)
+	req.Header.Set("X-User-Email", currentUser.Email)
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := o.httpClient.Do(req)
+	if err != nil {
+		o.jsonError(c, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		var errResp struct {
+			Errors string `json:"errors"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
+			o.jsonError(c, "Failed to decode error response", http.StatusInternalServerError)
+			return
+		}
+		o.jsonError(c, errResp.Errors, resp.StatusCode)
+		return
+	}
+
+	var data interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		o.jsonError(c, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, data)
 }

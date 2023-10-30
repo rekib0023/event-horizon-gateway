@@ -19,12 +19,12 @@ type ProfileController struct {
 
 var profileController *ProfileController
 
-func (controller *ControllerInterface) InitProfileController() {
+func (c *ControllerInterface) InitProfileController() {
 	profileController = &ProfileController{
-		gRpc: controller.gRpc,
+		gRpc: c.gRpc,
 	}
 
-	controller.r.Use(middlewares.TokenAuthMiddleware(controller.gRpc))
+	c.r.Use(middlewares.TokenAuthMiddleware(c.gRpc))
 
 	GET("/users", profileController.getUsers)
 	GET("/users/:id", profileController.getUserById)
