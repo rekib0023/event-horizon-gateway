@@ -1,9 +1,7 @@
 package controller
 
 import (
-	"bytes"
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -26,11 +24,13 @@ func (controller *ControllerInterface) InitEventController() {
 
 	controller.r.Use(middlewares.TokenAuthMiddleware(controller.gRpc))
 
-	controller.r.GET("/events", eventController.eventsPassThrough)
-	controller.r.POST("/events", eventController.eventsPassThrough)
-	controller.r.PUT("/events/:eventId", eventController.eventsPassThrough)
-	controller.r.GET("/events/:eventId/attendees", eventController.eventsPassThrough)
-	controller.r.POST("/events/:eventId/attendEvent", eventController.eventsPassThrough)
+	GET("/events", eventController.eventsPassThrough)
+	POST("/events", eventController.eventsPassThrough)
+	GET("/events/:eventId", eventController.eventsPassThrough)
+	PUT("/events/:eventId", eventController.eventsPassThrough)
+	DELETE("/events/:eventId", eventController.eventsPassThrough)
+	GET("/events/:eventId/attendees", eventController.eventsPassThrough)
+	POST("/events/:eventId/attendEvent", eventController.eventsPassThrough)
 }
 
 func (o *EventController) eventsPassThrough(c *gin.Context) {
@@ -46,19 +46,9 @@ func (o *EventController) eventsPassThrough(c *gin.Context) {
 		return
 	}
 
-	var body []byte
-	if c.Request.Method == "POST" || c.Request.Method == "PUT" {
-		var err error
-		body, err = ioutil.ReadAll(c.Request.Body)
-		if err != nil {
-			o.jsonError(c, "Failed to read request body", http.StatusInternalServerError)
-			return
-		}
-	}
-
 	endpoint := strings.TrimPrefix(c.Request.URL.Path, "/api")
 	url := os.Getenv("EVENT_MGT_SVC") + endpoint
-	req, err := http.NewRequest(c.Request.Method, url, ioutil.NopCloser(bytes.NewBuffer(body)))
+	req, err := http.NewRequest(c.Request.Method, url, c.Request.Body)
 
 	if err != nil {
 		o.jsonError(c, err.Error(), http.StatusInternalServerError)
@@ -67,6 +57,7 @@ func (o *EventController) eventsPassThrough(c *gin.Context) {
 
 	req.Header.Set("X-User-ID", currentUser.Id)
 	req.Header.Set("X-User-Email", currentUser.Email)
+	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := o.httpClient.Do(req)
 	if err != nil {
@@ -78,19 +69,13 @@ func (o *EventController) eventsPassThrough(c *gin.Context) {
 
 	if resp.StatusCode >= 400 {
 		var errResp struct {
-			Errors []struct {
-				Message string `json:"message"`
-			} `json:"errors"`
+			Errors string `json:"errors"`
 		}
 		if err := json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
 			o.jsonError(c, "Failed to decode error response", http.StatusInternalServerError)
 			return
 		}
-		if len(errResp.Errors) > 0 {
-			o.jsonError(c, errResp.Errors[0].Message, resp.StatusCode)
-			return
-		}
-		o.jsonError(c, "An error occurred", resp.StatusCode)
+		o.jsonError(c, errResp.Errors, resp.StatusCode)
 		return
 	}
 
