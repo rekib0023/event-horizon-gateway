@@ -19,6 +19,7 @@ var controller *ControllerInterface
 func Init() {
 	controller.InitAuthController()
 	controller.InitProfileController()
+	controller.InitEventController()
 }
 
 var e *gin.Engine
@@ -63,4 +64,8 @@ func PUT(pattern string, handler gin.HandlerFunc) {
 
 func DELETE(pattern string, handler gin.HandlerFunc) {
 	controller.r.DELETE(pattern, handler)
+}
+
+func ANY(pattern string, handler gin.HandlerFunc) {
+	controller.r.Any(pattern, handler)
 }
