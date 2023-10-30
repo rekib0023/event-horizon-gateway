@@ -27,9 +27,9 @@ func (c *ControllerInterface) InitProfileController() {
 	c.r.Use(middlewares.TokenAuthMiddleware(c.gRpc))
 
 	GET("/users", profileController.getUsers)
-	GET("/users/:id", profileController.getUserById)
-	PUT("/users/:id", profileController.updateUser)
-	DELETE("/users/:id", profileController.deleteUser)
+	GET("/users/:userId", profileController.getUserById)
+	PUT("/users/:userId", profileController.updateUser)
+	DELETE("/users/:userId", profileController.deleteUser)
 }
 
 func (o *ProfileController) getUsers(c *gin.Context) {
@@ -55,10 +55,10 @@ func (o *ProfileController) getUsers(c *gin.Context) {
 }
 
 func (o *ProfileController) getUserById(c *gin.Context) {
-	idStr := c.Param("id")
+	idStr := c.Param("userId")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		log.Printf("could not parse id: %v", err)
+		log.Printf("could not parse userId: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
@@ -79,10 +79,10 @@ func (o *ProfileController) getUserById(c *gin.Context) {
 }
 
 func (o *ProfileController) updateUser(c *gin.Context) {
-	idStr := c.Param("id")
+	idStr := c.Param("userId")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		log.Printf("could not parse id: %v", err)
+		log.Printf("could not parse userId: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
@@ -109,10 +109,10 @@ func (o *ProfileController) updateUser(c *gin.Context) {
 }
 
 func (o *ProfileController) deleteUser(c *gin.Context) {
-	idStr := c.Param("id")
+	idStr := c.Param("userId")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		log.Printf("could not parse id: %v", err)
+		log.Printf("could not parse userId: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
