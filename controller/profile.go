@@ -30,6 +30,7 @@ func (c *ControllerInterface) InitProfileController() {
 	GET("/users/:userId", profileController.getUserById)
 	PUT("/users/:userId", profileController.updateUser)
 	DELETE("/users/:userId", profileController.deleteUser)
+	GET("/users/:userId/events", c.eventsPassThrough)
 }
 
 func (o *ProfileController) getUsers(c *gin.Context) {

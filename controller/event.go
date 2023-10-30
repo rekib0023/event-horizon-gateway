@@ -11,7 +11,7 @@ func (o *ControllerInterface) InitEventController() {
 
 	USE(middlewares.TokenAuthMiddleware(o.gRpc))
 
-	GET("/events", o.eventsPassThrough)
+	GET("/events/search", o.eventsPassThrough)
 	POST("/events", o.eventsPassThrough)
 	GET("/events/:eventId", o.eventsPassThrough)
 	PUT("/events/:eventId", o.eventsPassThrough)
@@ -19,5 +19,4 @@ func (o *ControllerInterface) InitEventController() {
 	GET("/events/:eventId/attendees", o.eventsPassThrough)
 	POST("/events/:eventId/attendEvent", o.eventsPassThrough)
 	POST("/events/:eventId/register", o.eventsPassThrough)
-	GET("/users/:userId/events", o.eventsPassThrough)
 }

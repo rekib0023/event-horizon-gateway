@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -68,8 +69,17 @@ func (o *ControllerInterface) eventsPassThrough(c *gin.Context) {
 	}
 
 	endpoint := strings.TrimPrefix(c.Request.URL.Path, "/api")
-	url := os.Getenv("EVENT_MGT_SVC") + endpoint
-	req, err := http.NewRequest(c.Request.Method, url, c.Request.Body)
+	baseURL := os.Getenv("EVENT_MGT_SVC") + endpoint
+
+	u, err := url.Parse(baseURL)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
+	}
+
+	queryParams := c.Request.URL.Query()
+	u.RawQuery = queryParams.Encode()
+	req, err := http.NewRequest(c.Request.Method, u.String(), c.Request.Body)
 
 	if err != nil {
 		o.jsonError(c, err.Error(), http.StatusInternalServerError)
