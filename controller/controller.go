@@ -90,13 +90,20 @@ func (o *ControllerInterface) eventsPassThrough(c *gin.Context) {
 
 	if resp.StatusCode >= 400 {
 		var errResp struct {
-			Errors string `json:"errors"`
+			Errors []struct {
+				Message string `json:"message"`
+			} `json:"errors"`
 		}
 		if err := json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
 			o.jsonError(c, "Failed to decode error response", http.StatusInternalServerError)
 			return
 		}
-		o.jsonError(c, errResp.Errors, resp.StatusCode)
+		var errMsgs []string
+		for _, e := range errResp.Errors {
+			errMsgs = append(errMsgs, e.Message)
+		}
+		errMsg := strings.Join(errMsgs, ", ")
+		o.jsonError(c, errMsg, resp.StatusCode)
 		return
 	}
 

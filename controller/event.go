@@ -19,5 +19,5 @@ func (o *ControllerInterface) InitEventController() {
 	GET("/events/:eventId/attendees", o.eventsPassThrough)
 	POST("/events/:eventId/attendEvent", o.eventsPassThrough)
 	POST("/events/:eventId/register", o.eventsPassThrough)
-	GET("/users/:userId/upcoming-events", o.eventsPassThrough)
+	GET("/users/:userId/events", o.eventsPassThrough)
 }
