@@ -8,6 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	pb "github.com/rekib0023/event-horizon-gateway/proto"
+	"github.com/rekib0023/event-horizon-gateway/utils"
+	"google.golang.org/grpc/status"
 )
 
 type AuthController struct {
@@ -37,8 +39,14 @@ func (o *AuthController) signup(c *gin.Context) {
 	res, err := o.gRpc.Signup(context.Background(), &pb.SignupRequest{FirstName: reqData.FirstName, LastName: reqData.LastName, UserName: reqData.UserName, Email: reqData.Email, Password: reqData.Password})
 	if err != nil {
 		log.Printf("could not call Signup: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-		return
+		if s, ok := status.FromError(err); ok {
+			httpStatusCode := utils.GetHttpStatusCode(s.Code())
+			c.JSON(httpStatusCode, gin.H{"error": s.Message()})
+			return
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			return
+		}
 	}
 
 	c.SetCookie("token", res.Token, 3600, "/", "", false, true)
@@ -56,8 +64,14 @@ func (o *AuthController) login(c *gin.Context) {
 	res, err := o.gRpc.Login(context.Background(), &pb.LoginRequest{Email: reqData.Email, Password: reqData.Password})
 	if err != nil {
 		log.Printf("could not call Login: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-		return
+		if s, ok := status.FromError(err); ok {
+			httpStatusCode := utils.GetHttpStatusCode(s.Code())
+			c.JSON(httpStatusCode, gin.H{"error": s.Message()})
+			return
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			return
+		}
 	}
 
 	c.SetCookie("token", res.Token, 3600, "/", "", false, true)
@@ -75,8 +89,14 @@ func (o *AuthController) verifyToken(c *gin.Context) {
 	res, err := o.gRpc.VerifyToken(context.Background(), &pb.Token{Token: reqData.Token})
 	if err != nil {
 		log.Printf("could not call VerifyToken: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-		return
+		if s, ok := status.FromError(err); ok {
+			httpStatusCode := utils.GetHttpStatusCode(s.Code())
+			c.JSON(httpStatusCode, gin.H{"error": s.Message()})
+			return
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			return
+		}
 	}
 	c.JSON(http.StatusOK, res)
 }
@@ -101,8 +121,14 @@ func (o *AuthController) refreshToken(c *gin.Context) {
 	res, err := o.gRpc.RefreshToken(context.Background(), &pb.Token{Token: token})
 	if err != nil {
 		log.Printf("could not call RefreshToken: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-		return
+		if s, ok := status.FromError(err); ok {
+			httpStatusCode := utils.GetHttpStatusCode(s.Code())
+			c.JSON(httpStatusCode, gin.H{"error": s.Message()})
+			return
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			return
+		}
 	}
 
 	c.SetCookie("token", res.Token, 3600, "/", "", false, true)
