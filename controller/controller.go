@@ -32,6 +32,7 @@ var e *gin.Engine
 func Start() {
 	e = gin.Default()
 
+	log.Println("Dialing to:", os.Getenv("AUTH_SVC"))
 	conn, err := grpc.Dial(os.Getenv("AUTH_SVC"), grpc.WithInsecure())
 	if err != nil {
 		log.Printf("did not connect: %v", err)
@@ -51,8 +52,11 @@ func Start() {
 		log.Fatal("PORT environment variable not set")
 	}
 
+	serverErr := e.Run(":" + port).Error()
+	if serverErr != "" {
+		log.Fatalf("Failed to start server. Error: %s", serverErr)
+	}
 	log.Println("Starting server on :" + port + "...")
-	e.Run(":" + port)
 }
 
 func (o *ControllerInterface) eventsPassThrough(c *gin.Context) {
