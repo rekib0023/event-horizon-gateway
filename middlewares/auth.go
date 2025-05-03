@@ -19,8 +19,8 @@ func TokenAuthMiddleware(gRpc pb.AuthServiceClient) gin.HandlerFunc {
 		token, err := c.Cookie("token")
 
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
-			c.Abort()
+			// c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
+			// c.Abort()
 			return
 		}
 
